@@ -5,7 +5,7 @@
 ### 内含Curator以及Watcher操作demo，基于zookeeper实现的分布式锁demo  
   
 [1.发展需求](#1发展需求)  
-[2.什么是zookeeper？](#2什么是zookeeper？)  
+[2.什么是zookeeper？](#2什么是zookeeper)  
 [3.zookeeper的安装部署(集群)](#3zookeeper的安装部署集群)  
 [4.zookeeper的数据特点](#4zookeeper的数据特点)  
 [5.zookeeper的集群](#5zookeeper的集群)  
