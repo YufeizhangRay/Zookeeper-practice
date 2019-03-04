@@ -195,19 +195,26 @@ create (/zk-persis-Ray/children)   NodeChildrenChanged(getchild)        NodedCre
 delete (/zk-persis-Ray/children)   NodeChildrenChanged(getchild)        NodedDeleted
 setData(/zk-persis-Ray/children)                                        NodeDataChanged
 ```
-#### 事件的实现原理图解  
+#### 事件大致原理图解  
 >客户端会在服务端上面注册监听事件，本身也会对其进行保存。  
 服务端对事件进行绑定。  
   
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E6%80%BB%E5%8E%9F%E7%90%86%E5%9B%BE.jpeg)  
   
 >客户端的exist方法会组装packet并加入到outgoingqueued队列。  
-zookeeper在构造方法中会启动线程，从outgoingqueued队列中取得数据包，序列化并发送。  
+zookeeper在构造方法中会启动SendThread线程，从outgoingqueued队列中取得数据包，序列化并通过Netty的通道发送。  
   
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E7%9B%91%E5%90%AC%E7%BB%91%E5%AE%9A.jpeg)  
   
-
+>服务端收到数据后会对反序列化的packet进行处理，组装Request。  
+构建Processor链条，提供不同的处理职能。  
+处理Request，拿到stat状态信息，获取watcher，绑定事件。  
+服务端通过Netty通道返回信息。  
+  
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E6%9C%8D%E5%8A%A1%E7%AB%AF.jpeg)  
+  
+>客户端收到信息后，SendThread通过readResponse拿到packet。  
+通过finishPacket方法注册事件。  
   
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E5%AE%A2%E6%88%B7%E7%AB%AF.jpeg)   
   
