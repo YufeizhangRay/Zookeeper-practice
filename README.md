@@ -197,12 +197,12 @@ setData(/zk-persis-Ray/children)                                        NodeData
 ```
 #### 事件大致原理图解  
 >客户端会在服务端上面注册监听事件，本身也会对其进行保存。  
-服务端对事件进行绑定。  
+服务端对事件进行绑定，在事件被触发的时候通过process方法回调。  
   
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E6%80%BB%E5%8E%9F%E7%90%86%E5%9B%BE.jpeg)  
   
->客户端的exist方法会组装packet并加入到outgoingqueued队列。  
-zookeeper在构造方法中会启动SendThread线程，从outgoingqueued队列中取得数据包，序列化并通过Netty的通道发送。  
+>客户端的exist方法会将request进行标记，并设置为使用监听。同时生成watchRegistration，组装到zookeeper基本的通信单元packet中，并将packet加入到outgoingqueued队列。  
+zookeeper在构造方法中会启动SendThread线程，从outgoingqueued队列中取得数据包，序列化(并没有序列化整个watchRegistration)requestHeader、request，并通过Netty的通道发送。    
   
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E7%9B%91%E5%90%AC%E7%BB%91%E5%AE%9A.jpeg)  
   
@@ -214,7 +214,17 @@ zookeeper在构造方法中会启动SendThread线程，从outgoingqueued队列�
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E6%9C%8D%E5%8A%A1%E7%AB%AF.jpeg)  
   
 >客户端收到信息后，SendThread通过readResponse拿到packet。  
-通过finishPacket方法注册事件。  
+通过finishPacket方法注册事件，将事件保存在ZkWatcherManager。  
   
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E5%AE%A2%E6%88%B7%E7%AB%AF.jpeg)   
+  
+事件触发  
+通过watchManager的triggerWatch来触发事件。  
+>1.封装watchedEvent  
+2.查询Watcher  
+3.调用process方法触发watcher  
+>>process方法将watchedEvent包装成watcherEvent调用sendResponse方法发送给客户端，由客户端实现真正的事件调用逻辑。  
+  
+>客户端从ZkWatcherManager中取出对应的watcher加入waitingEvent队列。  
+EventThread的run方法会不断的从队列中取出事件，然后使用processEvent方法中的process方法处理事件。  
   
