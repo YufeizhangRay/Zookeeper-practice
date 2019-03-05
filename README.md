@@ -201,8 +201,8 @@ setData(/zk-persis-Ray/children)                                        NodeData
   
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E6%80%BB%E5%8E%9F%E7%90%86%E5%9B%BE.jpeg)  
   
->客户端的exist方法会将request进行标记，并设置为使用监听。同时生成watchRegistration，组装到zookeeper基本的通信单元packet中，并将packet加入到outgoingqueued队列。  
-zookeeper在构造方法中会启动SendThread线程，从outgoingqueued队列中取得数据包，序列化(并没有序列化整个watchRegistration)requestHeader、request，并通过Netty的通道发送。    
+>客户端的exist方法会将request进行标记，并设置为使用监听。同时生成watchRegistration，组装到zookeeper基本的通信单元packet中，并将packet加入到outgoingqueu队列。  
+zookeeper在构造方法中会启动SendThread线程与EventThread线程，其中SendThread负责I/O处理，会从outgoingqueued队列中取得数据包，序列化(并没有序列化整个watchRegistration)requestHeader、request，并通过Netty的通道发送。发送给服务端而还未收到回应的数据包会被放在pendingQueue队列中。    
   
 ![](https://github.com/YufeizhangRay/image/blob/master/zookeeper/%E7%9B%91%E5%90%AC%E7%BB%91%E5%AE%9A.jpeg)  
   
@@ -226,5 +226,5 @@ zookeeper在构造方法中会启动SendThread线程，从outgoingqueued队列�
 >>process方法将watchedEvent包装成watcherEvent调用sendResponse方法发送给客户端，由客户端实现真正的事件调用逻辑。  
   
 >客户端从ZkWatcherManager中取出对应的watcher加入waitingEvent队列。  
-EventThread的run方法会不断的从队列中取出事件，然后使用processEvent方法中的process方法处理事件。  
+EventThread线程负责处理事件，其run方法会不断的从队列中取出事件，然后使用processEvent方法中的process方法处理事件。  
   
