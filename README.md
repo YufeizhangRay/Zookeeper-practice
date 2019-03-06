@@ -228,3 +228,4 @@ zookeeper在构造方法中会启动SendThread线程与EventThread线程，其�
 >客户端从ZkWatcherManager中取出对应的watcher加入waitingEvent队列。  
 EventThread线程负责处理事件，其run方法会不断的从队列中取出事件，然后使用processEvent方法中的process方法处理事件。  
   
+[返回顶部](#zookeeper-practice)
